@@ -1,0 +1,12 @@
+<form [formGroup]="addTodoForm" (ngSubmit)="onSubmit()">
+  <ion-input
+    type="text"
+    fill="solid"
+    label="Todo"
+    labelPlacement="floating"
+    helperText="Enter todo element"
+    formControlName="todo"
+  ></ion-input>
+  <ion-button type="submit" [routerLink]="['/todos-list']">Add</ion-button>
+</form>
+

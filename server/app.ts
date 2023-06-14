@@ -2,12 +2,16 @@
 interface todo {_id : string, title : string}
 
 const express = require('express');
+const cors = require('cors');
 
 const { connectToDb, getDb} = require('./db');
 const { ObjectId } = require('mongodb');
 
 const app = express();
 app.use(express.json());
+app.use(cors({
+  origin: '*'
+}));
 
 let db: any
 

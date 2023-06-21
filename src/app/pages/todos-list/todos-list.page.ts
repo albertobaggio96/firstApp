@@ -1,24 +1,28 @@
-import { Component, OnInit } from '@angular/core';
+import {AfterViewChecked, AfterViewInit, Component, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
 import { InfiniteScrollCustomEvent } from '@ionic/angular';
-import { AddTodoPage } from '../add-todo/add-todo.page';
-import { ListService } from 'src/app/services/list.service';
+import { AjaxService } from 'src/app/services/ajax.service';
+import { Todo } from 'src/app/type/todo';
 
 @Component({
   selector: 'app-todos-list',
   templateUrl: './todos-list.page.html',
   styleUrls: ['./todos-list.page.scss'],
 })
-export class TodosListPage implements OnInit {
+export class TodosListPage implements OnInit{
 
-  items! : string[]
 
-  constructor(private serviceList : ListService) {
-    console.log(serviceList)
-   }
+  items! : Todo[];
+
+  constructor( private ajax : AjaxService) { }
 
   ngOnInit() {
-    this.items = this.serviceList.todosList
+    this.getItems();
+  }
+
+  ionViewWillEnter(){
+    this.getItems();
+    console.log('ionViewWillEnter');
   }
 
   onIonInfinite(ev : Event) {
@@ -28,9 +32,20 @@ export class TodosListPage implements OnInit {
     }, 500);
   }
 
-  onDelete(index : number){
-    console.log(index)
-    this.serviceList.todosList.splice(index, 1)
+  onDelete(index : string){
+    this.ajax.deleteTodo('http://localhost:3000/todos', index)
+      .subscribe((data : object) =>{
+        console.log(data);
+        this.getItems();
+      })
+  }
+
+  getItems(){
+    this.ajax.getTodos('http://localhost:3000/todos')
+      .subscribe((data : Todo[]) => {
+        this.items = data;
+      })
+
   }
 
 }

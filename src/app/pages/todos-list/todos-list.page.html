@@ -4,9 +4,9 @@
       <ion-avatar slot="start">
         <img [src]="'https://picsum.photos/80/80?random=' + index" alt="avatar" />
       </ion-avatar>
-      <ion-label>{{ item }}</ion-label>
-      <ion-button slot="end" color="secondary" shape="round" routerLink="/add-todo/{{index}}"><ion-icon slot="icon-only" name="create-outline"></ion-icon></ion-button>
-      <ion-button slot="end" color="danger" shape="round" (click)="onDelete(index)"><ion-icon slot="icon-only" name="trash-outline"></ion-icon></ion-button>
+      <ion-label>{{ item.title }}</ion-label>
+      <ion-button slot="end" color="secondary" shape="round" routerLink="/add-todo/{{item._id}}"><ion-icon slot="icon-only" name="create-outline"></ion-icon></ion-button>
+      <ion-button slot="end" color="danger" shape="round" (click)="onDelete(item._id)"><ion-icon slot="icon-only" name="trash-outline"></ion-icon></ion-button>
     </ion-item>
   </ion-list>
   <ion-infinite-scroll (ionInfinite)="onIonInfinite($event)">

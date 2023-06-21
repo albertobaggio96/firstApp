@@ -1,60 +1,77 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { ListService } from 'src/app/services/list.service';
+import { AjaxService } from 'src/app/services/ajax.service';
+import { Todo } from 'src/app/type/todo';
 
 @Component({
   selector: 'app-add-todo',
   templateUrl: './add-todo.page.html',
   styleUrls: ['./add-todo.page.scss'],
 })
-export class AddTodoPage implements OnInit, OnDestroy {
+export class AddTodoPage implements OnInit {
 
-  addTodoForm! : FormGroup
+  addTodoForm! : FormGroup;
 
-  todo! : string
+  todo! : string;
 
-  isNew = false
+  isNew = true;
 
-  id! : number
+  id! : string;
 
-  constructor(private listService : ListService, private route : ActivatedRoute, private router : Router) { }
+  constructor(private ajax : AjaxService, private route : ActivatedRoute, private router : Router) { }
 
   ngOnInit() {
 
+    // per prendere i parametri
     this.route.paramMap.subscribe((params : ParamMap) => {
-      console.log(params.get('id'))
 
-      // controllo se si crea un nuovo todo o è un edit di uno esistente
-      if (params.get('id') === 'new'){
-        this.todo = ''
-        this.isNew = true
-      } else if (Number.parseInt(params.get('id')!, 10) < this.listService.todosList.length){
-        this.id = Number.parseInt(params.get('id')!, 10)
-        this.todo = this.listService.todosList[this.id]
-      } else {
-        // negli altri casi viene reindirizzato sulla pagina 404
-        console.log(this.router.navigateByUrl('/not-found'))
+      this.todo = '';
+      this.addTodoForm = new FormGroup({
+        todo: new FormControl(this.todo, [Validators.required, Validators.min(2), Validators.max(30)])
+      });
+
+      // controllo se non è un nuovo todo
+      if (params.get('id') !== 'new'){
+
+        // salvo l'id in una variabile
+        this.id = params.get('id')!;
+
+        this.isNew = false;
+
+        // prendo e salvo dati del todo che voglio modificare
+        this.ajax.getTodo('http://localhost:3000/todos', this.id)
+          .subscribe((data : Todo) => {
+            this.todo = data.title;
+            this.addTodoForm = new FormGroup({
+              todo: new FormControl(this.todo, [Validators.required, Validators.min(2), Validators.max(30)])
+            });
+          })
+
       }
     })
 
-    console.log(this.todo)
-    this.addTodoForm = new FormGroup({
-      todo: new FormControl(this.todo, [Validators.required, Validators.min(2), Validators.max(30)])
-    })
   }
 
   onSubmit(){
     // se è nuovo lo aggiungo alla fine, se è un edit lo modifico
     if(this.isNew){
-      this.listService.todosList.push(this.addTodoForm.value.todo)
+      this.ajax.createTodo('http://localhost:3000/todos', {title : this.addTodoForm.value.todo})
+        .subscribe((data: any) =>{
+          console.log(data.acknowledged);
+          if(data.acknowledged){
+            this.router.navigate(['/todos-list']);
+          }
+        })
     } else {
-      this.listService.todosList[this.id] = this.addTodoForm.value.todo
+      this.ajax.editTodo('http://localhost:3000/todos', this.id, {title : this.addTodoForm.value.todo})
+        .subscribe((data : any) =>{
+          console.log(data.acknowledged);
+          if(data.acknowledged){
+            this.router.navigate(['/todos-list']);
+          }
+        })
     }
-  }
-
-  ngOnDestroy(): void {
-    this.todo = ''
   }
 
 }
